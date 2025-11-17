@@ -1,0 +1,17 @@
+# Core dependencies
+Flask==2.3.3
+Flask-CORS==4.0.0
+SQLAlchemy==1.4.49
+python-dotenv==1.0.0
+
+# Development dependencies
+pytest==7.4.3
+pytest-cov==4.1.0
+black==23.9.1
+flake8==6.1.0
+mypy==1.6.1
+
+# Database drivers
+# SQLite is included with Python
+# For PostgreSQL: psycopg2-binary==2.9.7
+# For MySQL: PyMySQL==1.1.0
