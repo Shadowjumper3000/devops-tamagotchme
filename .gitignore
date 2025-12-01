@@ -205,3 +205,133 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# ============================================================================
+# Life Planner Project Specific
+# ============================================================================
+
+# Database files
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+life_planner.db
+life_planner.db-journal
+data/*.db
+
+# Environment variables (contains secrets)
+.env
+.env.local
+.env.*.local
+
+# Application logs
+logs/
+*.log
+app.log
+debug.log
+error.log
+
+# User uploaded files (if implemented)
+uploads/
+media/
+user_data/
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+*.temp
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Test coverage reports
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Development database backups
+backups/
+*.backup.db
+
+# Session files
+flask_session/
+sessions/
+
+# Cache directories
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Documentation build files
+docs/_build/
+docs/.doctrees/
+
+# Configuration files with sensitive data
+config/production.py
+config/local.py
+config/secrets.yaml
+
+# Docker files (if using Docker)
+docker-compose.override.yml
+.dockerignore
+
+# Frontend build files
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+.next/
+out/
+build/
+dist/
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+certs/
+ssl/
+
+# API keys and secrets
+secrets.json
+api_keys.txt
+credentials.json
+
+# Local development overrides
+local_settings.py
+dev_settings.py
+
+# Performance profiling
+*.prof
+*.lprof
+profile_*.txt
+
+# Keep example/template files
+!.env.example
+!config.example.py
+!docker-compose.example.yml

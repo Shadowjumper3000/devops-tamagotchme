@@ -32,14 +32,14 @@ class Config:
 def get_config() -> Config:
     """Get application configuration from environment variables and defaults."""
 
-    # Get base path
+    # Get base path - goes up from src/core/ to project root
     base_path = Path(__file__).parent.parent.parent
 
     return Config(
         # Database
         database_url=os.getenv("DATABASE_URL", "sqlite:///life_planner.db"),
         database_path=os.getenv(
-            "DATABASE_PATH", str(base_path / "data" / "life_planner.db")
+            "DATABASE_PATH", str(base_path / "life_planner.db")  # Creates in project root
         ),
         # Frontend
         host=os.getenv("HOST", "127.0.0.1"),
