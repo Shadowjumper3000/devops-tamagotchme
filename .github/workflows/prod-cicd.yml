@@ -27,7 +27,7 @@ jobs:
     outputs:
       image_tag: ${{ steps.meta.outputs.tags }}
       image_digest: ${{ steps.build.outputs.digest }}
-      commit_sha: ${{ github.sha }}
+      short_sha: ${{ steps.short.outputs.sha }}
     
     steps:
     - name: Checkout code
@@ -64,7 +64,7 @@ jobs:
       with:
         images: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}
         tags: |
-          type=sha,prefix=prod-
+          type=sha,prefix=prod-,format=short
           type=raw,value=latest
 
     - name: Build and push Docker image
@@ -77,6 +77,11 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+    - name: Generate short SHA
+      id: short
+      run: |
+        echo "sha=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
 
     - name: Build summary
       run: |
@@ -105,7 +110,7 @@ jobs:
 
     - name: Verify image exists in ACR
       run: |
-        IMAGE_TAG="prod-${{ needs.build-and-test.outputs.commit_sha }}"
+        IMAGE_TAG="prod-${{ needs.build-and-test.outputs.short_sha }}"
         echo "Checking for image: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG"
         
         # List tags to see what's actually in the registry
@@ -148,7 +153,7 @@ jobs:
         acrName: ${{ steps.acr.outputs.name }}
         acrUsername: ${{ secrets.ACR_USERNAME }}
         acrPassword: ${{ secrets.ACR_PASSWORD }}
-        imageToDeploy: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:prod-${{ needs.build-and-test.outputs.commit_sha }}
+        imageToDeploy: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:prod-${{ needs.build-and-test.outputs.short_sha }}
         location: westeurope
         targetPort: 8080
         ingress: external
@@ -178,7 +183,7 @@ jobs:
         echo "- **Container App:** ${{ secrets.AZURE_CONTAINER_APP_NAME }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Resource Group:** ${{ secrets.AZURE_RESOURCE_GROUP }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Revision:** ${{ steps.revision.outputs.revision_name }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Image:** ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:prod-${{ needs.build-and-test.outputs.commit_sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Image:** ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:prod-${{ needs.build-and-test.outputs.short_sha }}" >> $GITHUB_STEP_SUMMARY
 
   rollback:
     runs-on: ubuntu-latest
