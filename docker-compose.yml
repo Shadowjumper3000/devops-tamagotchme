@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: life-planner
+    container_name: tamagotchmi
     ports:
       - "8080:8080"
     environment:
