@@ -101,9 +101,10 @@ jobs:
     - name: Extract image tag from build output
       id: image
       run: |
-        # Get the first tag from the build job output (prod-SHA)
-        IMAGE_TAG=$(echo "${{ needs.build-and-test.outputs.image_tag }}" | head -n1)
-        echo "full_image=$IMAGE_TAG" >> $GITHUB_OUTPUT
+        # The metadata action outputs tags as a multi-line string, get the first one
+        FULL_IMAGE=$(echo "${{ needs.build-and-test.outputs.image_tag }}" | head -n1 | tr -d '\n')
+        echo "Image to deploy: $FULL_IMAGE"
+        echo "full_image=$FULL_IMAGE" >> $GITHUB_OUTPUT
 
     - name: Clean up failed Container App if exists
       run: |
