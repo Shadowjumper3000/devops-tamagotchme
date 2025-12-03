@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Gym Tracker - Tamagotchi Tracker{% endblock %}
+
+{% block content %}
+<div class="tracker-page">
+    <div class="page-header">
+        <h1>💪 Gym Tracker</h1>
+        <button class="btn btn-primary" onclick="showAddModal()">+ Add Workout</button>
+    </div>
+    
+    <div class="analytics-grid">
+        <div class="analytics-card">
+            <h3>Today's Workout</h3>
+            <div class="big-stat">{{ analytics.today_minutes or 0 }} min</div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ analytics.goal_percentage or 0 }}%"></div>
+            </div>
+            <p>Goal: {{ analytics.daily_goal or 60 }} min</p>
+        </div>
+        
+        <div class="analytics-card">
+            <h3>This Week</h3>
+            <div class="big-stat">{{ analytics.weekly_minutes or 0 }} min</div>
+            <p>{{ analytics.weekly_workouts or 0 }} workouts</p>
+        </div>
+        
+        <div class="analytics-card">
+            <h3>Calories Burned</h3>
+            <div class="big-stat">{{ analytics.calories_burned or 0 }}</div>
+            <p>today</p>
+        </div>
+        
+        <div class="analytics-card">
+            <h3>Workout Streak</h3>
+            <div class="big-stat">{{ analytics.streak or 0 }} 🔥</div>
+            <p>days in a row</p>
+        </div>
+    </div>
+    
+    <div class="charts-row">
+        <div class="chart-container">
+            <h2>Weekly Activity</h2>
+            <canvas id="activityChart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <h2>Workout Types</h2>
+            <canvas id="workoutTypesChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="history-section">
+        <h2>Recent Workouts</h2>
+        <div class="workout-list">
+            {% for workout in workouts %}
+            <div class="workout-card">
+                <div class="workout-header">
+                    <h3>{{ workout.type }}</h3>
+                    <span class="workout-date">{{ workout.timestamp.strftime('%b %d, %I:%M %p') }}</span>
+                </div>
+                <div class="workout-stats">
+                    <div class="workout-stat">
+                        <span class="stat-label">Duration</span>
+                        <span class="stat-value">{{ workout.duration }} min</span>
+                    </div>
+                    <div class="workout-stat">
+                        <span class="stat-label">Intensity</span>
+                        <span class="stat-value">{{ workout.intensity }}</span>
+                    </div>
+                    <div class="workout-stat">
+                        <span class="stat-label">Calories</span>
+                        <span class="stat-value">{{ workout.calories or '-' }}</span>
+                    </div>
+                </div>
+                {% if workout.notes %}
+                <p class="workout-notes">{{ workout.notes }}</p>
+                {% endif %}
+                <div class="workout-actions">
+                    <button class="btn-icon" onclick="editWorkout({{ workout.id }})">✏️</button>
+                    <button class="btn-icon" onclick="deleteWorkout({{ workout.id }})">🗑️</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Workout Modal -->
+<div id="addWorkoutModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Add Workout</h2>
+        <form id="addWorkoutForm">
+            <div class="form-group">
+                <label for="workout_type">Workout Type</label>
+                <select id="workout_type" name="workout_type" required>
+                    <option value="">Select type...</option>
+                    <option value="Cardio">Cardio</option>
+                    <option value="Strength">Strength Training</option>
+                    <option value="HIIT">HIIT</option>
+                    <option value="Yoga">Yoga</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="duration">Duration (min)</label>
+                    <input type="number" id="duration" name="duration" required min="1">
+                </div>
+                <div class="form-group">
+                    <label for="intensity">Intensity</label>
+                    <select id="intensity" name="intensity" required>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="calories">Calories Burned (optional)</label>
+                <input type="number" id="calories" name="calories" min="0">
+            </div>
+            <div class="form-group">
+                <label for="notes">Notes (optional)</label>
+                <textarea id="notes" name="notes" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/gym.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Water Tracker - Tamagotchi Tracker{% endblock %}
+
+{% block content %}
+<div class="tracker-page">
+    <div class="page-header">
+        <h1>💧 Water Tracker</h1>
+        <button class="btn btn-primary" onclick="showAddModal()">+ Add Water</button>
+    </div>
+    
+    <div class="analytics-grid">
+        <div class="analytics-card">
+            <h3>Today's Intake</h3>
+            <div class="big-stat">{{ analytics.today_total or 0 }} ml</div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ analytics.today_percentage or 0 }}%"></div>
+            </div>
+            <p>Goal: {{ analytics.daily_goal or 2000 }} ml</p>
+        </div>
+        
+        <div class="analytics-card">
+            <h3>7-Day Average</h3>
+            <div class="big-stat">{{ analytics.weekly_avg or 0 }} ml</div>
+            <p>per day</p>
+        </div>
+        
+        <div class="analytics-card">
+            <h3>This Week</h3>
+            <div class="big-stat">{{ analytics.weekly_total or 0 }} ml</div>
+            <p>total intake</p>
+        </div>
+        
+        <div class="analytics-card">
+            <h3>Streak</h3>
+            <div class="big-stat">{{ analytics.streak or 0 }} 🔥</div>
+            <p>days on track</p>
+        </div>
+    </div>
+    
+    <div class="chart-container">
+        <h2>Weekly Trend</h2>
+        <canvas id="waterChart"></canvas>
+    </div>
+    
+    <div class="history-section">
+        <h2>Recent Entries</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Amount</th>
+                    <th>Notes</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="waterHistory">
+                {% for entry in history %}
+                <tr>
+                    <td>{{ entry.timestamp.strftime('%I:%M %p') }}</td>
+                    <td>{{ entry.amount }} ml</td>
+                    <td>{{ entry.notes or '-' }}</td>
+                    <td>
+                        <button class="btn-icon" onclick="editEntry({{ entry.id }})">✏️</button>
+                        <button class="btn-icon" onclick="deleteEntry({{ entry.id }})">🗑️</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Water Modal -->
+<div id="addWaterModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Add Water Intake</h2>
+        <form id="addWaterForm">
+            <div class="form-group">
+                <label for="amount">Amount (ml)</label>
+                <input type="number" id="amount" name="amount" required min="0" step="50">
+            </div>
+            <div class="quick-amounts">
+                <button type="button" class="btn-quick" onclick="setAmount(250)">250ml</button>
+                <button type="button" class="btn-quick" onclick="setAmount(500)">500ml</button>
+                <button type="button" class="btn-quick" onclick="setAmount(750)">750ml</button>
+                <button type="button" class="btn-quick" onclick="setAmount(1000)">1L</button>
+            </div>
+            <div class="form-group">
+                <label for="notes">Notes (optional)</label>
+                <input type="text" id="notes" name="notes">
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/water.js') }}"></script>
+{% endblock %}
