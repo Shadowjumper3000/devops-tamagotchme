@@ -1,5 +1,0 @@
-# This entire folder should be deleted before production
-# If you accidentally commit it, these files won't be tracked:
-*.pyc
-__pycache__/
-*.log

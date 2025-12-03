@@ -31,7 +31,7 @@
                     <p class="stat-value">{{ stats.water_today or 0 }} ml</p>
                     <p class="stat-label">Today</p>
                 </div>
-                <a href="{{ url_for('water_page') }}" class="stat-link">View Details →</a>
+                <a href="{{ url_for('pages.water_page') }}" class="stat-link">View Details →</a>
             </div>
             
             <div class="stat-card food-stat">
@@ -41,7 +41,7 @@
                     <p class="stat-value">{{ stats.calories_today or 0 }} cal</p>
                     <p class="stat-label">Today</p>
                 </div>
-                <a href="{{ url_for('food_page') }}" class="stat-link">View Details →</a>
+                <a href="{{ url_for('pages.food_page') }}" class="stat-link">View Details →</a>
             </div>
             
             <div class="stat-card gym-stat">
@@ -51,7 +51,7 @@
                     <p class="stat-value">{{ stats.workout_minutes or 0 }} min</p>
                     <p class="stat-label">Today</p>
                 </div>
-                <a href="{{ url_for('gym_page') }}" class="stat-link">View Details →</a>
+                <a href="{{ url_for('pages.gym_page') }}" class="stat-link">View Details →</a>
             </div>
         </div>
     </div>

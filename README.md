@@ -23,39 +23,82 @@ A comprehensive life planning application built as a Python modular monolith, fe
 devops-tamagotchme/
 ├── main.py                     # Application entry point
 ├── requirements.txt            # Python dependencies
-├── API_DOCS.md                # API documentation
+├── Dockerfile                  # Docker container definition
+├── docker-compose.yml          # Local development setup
 ├── README.md                  # This file
-├── config/
-│   └── .env.example           # Environment configuration template
+├── docs/                       # Documentation
+│   ├── FRONTEND_ARCHITECTURE.md         # Frontend structure guide
+│   ├── FRONTEND_RESTRUCTURE_SUMMARY.md  # Restructuring changes
+│   ├── AZURE_DEPLOYMENT_GUIDE.md        # Azure setup guide
+│   ├── DEPLOYMENT_ARCHITECTURE.md       # Deployment overview
+│   └── data_flow_contract.md            # Data contracts
+├── .github/
+│   └── workflows/
+│       ├── dev-ci.yml          # CI for dev branch
+│       └── prod-cicd.yml       # CI/CD for prod branch
 ├── src/
-│   ├── core/                  # Core application logic
+│   ├── core/                   # Core application logic
 │   │   ├── __init__.py
-│   │   ├── application.py     # Main application class
-│   │   ├── config.py          # Configuration management
-│   │   ├── coordinator.py     # Module coordinator
-│   │   └── database.py        # Database manager
-│   ├── shared/                # Shared utilities
+│   │   ├── application.py      # Main application class
+│   │   ├── config.py           # Configuration management
+│   │   ├── coordinator.py      # Module coordinator
+│   │   ├── database.py         # Database manager
+│   │   ├── dashboard_service.py # Dashboard aggregation
+│   │   └── health_calculator.py # Pet health logic
+│   ├── shared/                 # Shared utilities
 │   │   ├── __init__.py
+│   │   ├── base_service.py     # Base service class
 │   │   └── database_interface.py # Reusable database interface
-│   ├── frontend/              # Web interface
+│   ├── frontend/               # Web interface (modular structure)
 │   │   ├── __init__.py
-│   │   ├── web_app.py         # Flask web application
-│   │   └── api.py             # REST API endpoints
-│   └── modules/               # Business logic modules
+│   │   ├── web_app.py          # Flask app initialization
+│   │   ├── api.py              # REST API endpoints
+│   │   ├── utils.py            # Shared utilities & decorators
+│   │   ├── routes/             # Route blueprints
+│   │   │   ├── __init__.py
+│   │   │   ├── auth_routes.py  # Authentication routes
+│   │   │   └── page_routes.py  # Application page routes
+│   │   ├── templates/          # HTML templates
+│   │   │   ├── base.html
+│   │   │   ├── login.html
+│   │   │   ├── register.html
+│   │   │   ├── home.html
+│   │   │   ├── water.html
+│   │   │   ├── food.html
+│   │   │   └── gym.html
+│   │   └── static/             # Static assets
+│   │       ├── css/
+│   │       ├── js/
+│   │       └── images/
+│   └── modules/                # Business logic modules
 │       ├── __init__.py
-│       ├── food_tracker/      # Food tracking module
+│       ├── auth/               # Authentication module
 │       │   ├── __init__.py
-│       │   ├── models.py      # Data models
-│       │   └── service.py     # Business logic
-│       ├── water_tracker/     # Water tracking module
+│       │   ├── models.py       # User model
+│       │   ├── service.py      # Auth business logic
+│       │   ├── repository.py   # Data access
+│       │   └── utils.py        # Password hashing
+│       ├── food_tracker/       # Food tracking module
+│       │   ├── __init__.py
+│       │   ├── models.py       # Data models
+│       │   └── service.py      # Business logic
+│       ├── water_tracker/      # Water tracking module
 │       │   ├── __init__.py
 │       │   ├── models.py
 │       │   └── service.py
-│       └── gym_tracker/       # Gym tracking module
+│       └── gym_tracker/        # Gym tracking module
 │           ├── __init__.py
 │           ├── models.py
 │           └── service.py
-└── tests/                     # Test files
+└── tests/                      # Test files
+    ├── conftest.py
+    ├── test_water_tracker.py
+    ├── test_food_tracker.py
+    ├── test_gym_tracker.py
+    ├── test_auth_service.py
+    ├── test_health_calculator.py
+    ├── test_dashboard_service.py
+    └── test_application.py
 ```
 
 ## Features
@@ -63,6 +106,9 @@ devops-tamagotchme/
 - **Food Tracker**: Track meals, calories, and nutritional information
 - **Water Tracker**: Monitor daily water intake and hydration goals  
 - **Gym Tracker**: Log workouts, exercises, and fitness progress
+- **User Authentication**: Secure login and registration
+- **Tamagotchi Pet**: Virtual pet that reflects your health habits
+- **Dashboard**: Aggregated view of all activities
 - **REST API**: Complete RESTful API for frontend communication
 - **Modular Architecture**: Clean separation of concerns with reusable components
 - **Database Interface**: Reusable database operations across modules
