@@ -6,6 +6,7 @@ from typing import Dict, Any
 from .config import Config
 from .coordinator import ModuleCoordinator
 from .database import DatabaseManager
+from src.frontend.web_app import WebApp
 
 
 logger = logging.getLogger(__name__)

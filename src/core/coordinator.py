@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class ModuleCoordinator:
     """
     Enhanced coordinator that manages all services and business logic.
-    
+
     This coordinator includes:
     - Authentication service (simplified)
     - All tracker services (water, food, gym)
@@ -30,12 +30,10 @@ class ModuleCoordinator:
         self.config = config
         self.database_manager = database_manager
 
-        # Initialize services
+        # Initialize services (will be populated later)
         self.services = {}
         self.auth_service = None
         self.dashboard_service = None
-
-        self._initialize_services()
 
         logger.info("Enhanced Module Coordinator initialized")
 
@@ -67,7 +65,10 @@ class ModuleCoordinator:
 
     def initialize_modules(self):
         """Initialize all modules."""
-        # Initialize tracker services
+        # First initialize services (now that database is ready)
+        self._initialize_services()
+
+        # Then initialize tracker services
         for name, service in self.services.items():
             try:
                 service.initialize()
@@ -199,7 +200,7 @@ class ModuleCoordinator:
         password: str,
         daily_water_goal: int = 2000,
         daily_calorie_goal: int = 2000,
-        weekly_exercise_goal: int = 3
+        weekly_exercise_goal: int = 3,
     ) -> Dict[str, Any]:
         """
         Register a new user - simplified version.
@@ -220,7 +221,7 @@ class ModuleCoordinator:
                 password=password,
                 daily_water_goal=daily_water_goal,
                 daily_calorie_goal=daily_calorie_goal,
-                weekly_exercise_goal=weekly_exercise_goal
+                weekly_exercise_goal=weekly_exercise_goal,
             )
         except Exception as e:
             logger.error(f"Registration failed: {e}")
@@ -247,7 +248,7 @@ class ModuleCoordinator:
         user_id: int,
         daily_water_goal: Optional[int] = None,
         daily_calorie_goal: Optional[int] = None,
-        weekly_exercise_goal: Optional[int] = None
+        weekly_exercise_goal: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
         Update user's health goals.
@@ -266,7 +267,7 @@ class ModuleCoordinator:
                 user_id=user_id,
                 daily_water_goal=daily_water_goal,
                 daily_calorie_goal=daily_calorie_goal,
-                weekly_exercise_goal=weekly_exercise_goal
+                weekly_exercise_goal=weekly_exercise_goal,
             )
         except Exception as e:
             logger.error(f"Failed to update goals for user {user_id}: {e}")

@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: life-planner
+    ports:
+      - "8080:8080"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8080
+      - DEBUG=False
+      - DATABASE_URL=sqlite:///life_planner.db
+      - DATABASE_PATH=/app/data/life_planner.db
+      - APP_NAME=Life Planner
+      - VERSION=1.0.0
+      - LOG_LEVEL=INFO
+    volumes:
+      # Persist database across container restarts
+      - app-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  app-data:
+    driver: local
