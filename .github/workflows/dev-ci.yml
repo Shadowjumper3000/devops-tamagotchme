@@ -7,7 +7,7 @@ on:
     branches: [ dev ]
 
 env:
-  IMAGE_NAME: life-planner
+  IMAGE_NAME: tamagotchmi
 
 jobs:
   build-and-test:

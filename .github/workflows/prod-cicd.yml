@@ -11,9 +11,9 @@ on:
         type: string
 
 env:
-  IMAGE_NAME: life-planner
-  AZURE_CONTAINER_APP_NAME: life-planner-app
-  AZURE_CONTAINER_ENV_NAME: life-planner-env
+  IMAGE_NAME: tamagotchmi
+  AZURE_CONTAINER_APP_NAME: tamagotchmi-app
+  AZURE_CONTAINER_ENV_NAME: tamagotchmi-env
 
 jobs:
   build-and-test:
