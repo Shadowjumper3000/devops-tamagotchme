@@ -10,10 +10,14 @@ on:
         required: false
         type: string
 
+concurrency:
+  group: prod-deployment
+  cancel-in-progress: false
+
 env:
-  IMAGE_NAME: tamagotchmi
-  AZURE_CONTAINER_APP_NAME: tamagotchmi-app
-  AZURE_CONTAINER_ENV_NAME: tamagotchmi-env
+  IMAGE_NAME: tamagotchme
+  AZURE_CONTAINER_APP_NAME: tamagotchme-app
+  AZURE_CONTAINER_ENV_NAME: tamagotchme-env
 
 jobs:
   build-and-test:
@@ -23,6 +27,7 @@ jobs:
     outputs:
       image_tag: ${{ steps.meta.outputs.tags }}
       image_digest: ${{ steps.build.outputs.digest }}
+      short_sha: ${{ steps.short.outputs.sha }}
     
     steps:
     - name: Checkout code
@@ -59,7 +64,7 @@ jobs:
       with:
         images: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}
         tags: |
-          type=sha,prefix=prod-
+          type=sha,prefix=prod-,format=short
           type=raw,value=latest
 
     - name: Build and push Docker image
@@ -72,6 +77,11 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+    - name: Generate short SHA
+      id: short
+      run: |
+        echo "sha=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
 
     - name: Build summary
       run: |
@@ -92,14 +102,61 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+    - name: Extract ACR name from login server
+      id: acr
+      run: |
+        ACR_NAME=$(echo "${{ secrets.ACR_LOGIN_SERVER }}" | cut -d'.' -f1)
+        echo "name=$ACR_NAME" >> $GITHUB_OUTPUT
+
+    - name: Verify image exists in ACR
+      run: |
+        IMAGE_TAG="prod-${{ needs.build-and-test.outputs.short_sha }}"
+        echo "Checking for image: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG"
+        
+        # List tags to see what's actually in the registry
+        echo "Available tags in ACR:"
+        az acr repository show-tags \
+          --name ${{ steps.acr.outputs.name }} \
+          --repository ${{ env.IMAGE_NAME }} \
+          --output table || echo "Repository not found or empty"
+        
+        # Check if our specific tag exists
+        if az acr repository show-tags \
+          --name ${{ steps.acr.outputs.name }} \
+          --repository ${{ env.IMAGE_NAME }} \
+          --output tsv | grep -q "^$IMAGE_TAG$"; then
+          echo "✅ Image tag found: $IMAGE_TAG"
+        else
+          echo "❌ Image tag NOT found: $IMAGE_TAG"
+          echo "The build job may have failed or the image wasn't pushed"
+          exit 1
+        fi
+
+    - name: Clean up failed Container App if exists
+      run: |
+        if az containerapp show --name ${{ secrets.AZURE_CONTAINER_APP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query "properties.provisioningState" -o tsv 2>/dev/null | grep -q "Failed"; then
+          echo "Container App in failed state, deleting..."
+          az containerapp delete \
+            --name ${{ secrets.AZURE_CONTAINER_APP_NAME }} \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --yes
+          echo "Waiting for deletion to complete..."
+          sleep 30
+        fi
+
     - name: Deploy to Azure Container Apps
       id: deploy
       uses: azure/container-apps-deploy-action@v1
       with:
         resourceGroup: ${{ secrets.AZURE_RESOURCE_GROUP }}
         containerAppName: ${{ secrets.AZURE_CONTAINER_APP_NAME }}
-        acrName: ${{ secrets.ACR_LOGIN_SERVER }}
-        imageToDeploy: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:prod-${{ github.sha }}
+        acrName: ${{ steps.acr.outputs.name }}
+        acrUsername: ${{ secrets.ACR_USERNAME }}
+        acrPassword: ${{ secrets.ACR_PASSWORD }}
+        imageToDeploy: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:prod-${{ needs.build-and-test.outputs.short_sha }}
+        location: westeurope
+        targetPort: 8080
+        ingress: external
         environmentVariables: |
           HOST=0.0.0.0
           PORT=8080
@@ -126,7 +183,7 @@ jobs:
         echo "- **Container App:** ${{ secrets.AZURE_CONTAINER_APP_NAME }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Resource Group:** ${{ secrets.AZURE_RESOURCE_GROUP }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Revision:** ${{ steps.revision.outputs.revision_name }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Image:** ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:prod-${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Image:** ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:prod-${{ needs.build-and-test.outputs.short_sha }}" >> $GITHUB_STEP_SUMMARY
 
   rollback:
     runs-on: ubuntu-latest
