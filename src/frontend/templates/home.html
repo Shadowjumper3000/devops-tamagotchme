@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Tamagotchi Tracker{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <h1>Welcome, {{ username }}! 👋</h1>
+    
+    <div class="tamagotchi-section">
+        <div class="tamagotchi-display">
+            <div id="tamagotchi-sprite" class="tamagotchi-sprite" data-health="{{ tamagotchi.health }}">
+                <div class="sprite-container">
+                    <img id="tamagotchi-image" class="tamagotchi-image" src="" alt="Tamagotchi" onerror="this.style.display='none';">
+                    <div id="image-loading" class="image-loading">Loading...</div>
+                </div>
+            </div>
+            <h2 class="tamagotchi-name">{{ pet_name or tamagotchi.name or 'Your Tamagotchi' }}</h2>
+            <div class="health-bar-container">
+                <div class="health-bar">
+                    <div class="health-fill" style="width: {{ tamagotchi.health }}%"></div>
+                </div>
+                <span class="health-text">{{ tamagotchi.health }}% Health</span>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card water-stat">
+                <div class="stat-icon">💧</div>
+                <div class="stat-info">
+                    <h3>Water</h3>
+                    <p class="stat-value">{{ stats.water_today or 0 }} ml</p>
+                    <p class="stat-label">Today</p>
+                </div>
+                <a href="{{ url_for('water_page') }}" class="stat-link">View Details →</a>
+            </div>
+            
+            <div class="stat-card food-stat">
+                <div class="stat-icon">🍎</div>
+                <div class="stat-info">
+                    <h3>Food</h3>
+                    <p class="stat-value">{{ stats.calories_today or 0 }} cal</p>
+                    <p class="stat-label">Today</p>
+                </div>
+                <a href="{{ url_for('food_page') }}" class="stat-link">View Details →</a>
+            </div>
+            
+            <div class="stat-card gym-stat">
+                <div class="stat-icon">💪</div>
+                <div class="stat-info">
+                    <h3>Gym</h3>
+                    <p class="stat-value">{{ stats.workout_minutes or 0 }} min</p>
+                    <p class="stat-label">Today</p>
+                </div>
+                <a href="{{ url_for('gym_page') }}" class="stat-link">View Details →</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="quick-actions">
+        <h2>Quick Actions</h2>
+        <div class="action-buttons">
+            <button class="btn btn-water" onclick="quickLog('water')">💧 Log Water</button>
+            <button class="btn btn-food" onclick="quickLog('food')">🍎 Log Food</button>
+            <button class="btn btn-gym" onclick="quickLog('gym')">💪 Log Workout</button>
+            <button class="btn btn-danger" onclick="quickLog('health')">❤️ Set Health (Temp Dev)</button>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Log Modal -->
+<div id="quickLogModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="modalTitle">Quick Log</h2>
+        <form id="quickLogForm">
+            <div id="modalBody"></div>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/home.js') }}"></script>
+{% endblock %}
