@@ -57,8 +57,8 @@
             <tbody id="waterHistory">
                 {% for entry in history %}
                 <tr>
-                    <td>{{ entry.timestamp.strftime('%I:%M %p') }}</td>
-                    <td>{{ entry.amount }} ml</td>
+                    <td>{{ entry.timestamp | format_time }}</td>
+                    <td>{{ entry.amount_ml | int }} ml</td>
                     <td>{{ entry.notes or '-' }}</td>
                     <td>
                         <button class="btn-icon" onclick="editEntry({{ entry.id }})">✏️</button>

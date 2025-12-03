@@ -57,7 +57,7 @@
             <div class="workout-card">
                 <div class="workout-header">
                     <h3>{{ workout.type }}</h3>
-                    <span class="workout-date">{{ workout.timestamp.strftime('%b %d, %I:%M %p') }}</span>
+                    <span class="workout-date">{{ workout.timestamp | format_datetime }}</span>
                 </div>
                 <div class="workout-stats">
                     <div class="workout-stat">

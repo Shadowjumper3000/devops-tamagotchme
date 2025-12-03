@@ -25,6 +25,9 @@ COPY --from=builder /root/.local /root/.local
 # Copy application code
 COPY . .
 
+# Create data directory for database
+RUN mkdir -p /app/data
+
 # Add Python user site-packages to PATH
 ENV PATH=/root/.local/bin:$PATH
 

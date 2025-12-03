@@ -57,7 +57,7 @@
             <div class="meal-card">
                 <div class="meal-header">
                     <h3>{{ meal.name }}</h3>
-                    <span class="meal-time">{{ meal.timestamp.strftime('%I:%M %p') }}</span>
+                    <span class="meal-time">{{ meal.timestamp | format_time }}</span>
                 </div>
                 <div class="meal-macros">
                     <span class="macro">🔥 {{ meal.calories }} cal</span>

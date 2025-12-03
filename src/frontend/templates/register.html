@@ -8,7 +8,7 @@
         <h1>🎉 Create Account</h1>
         <p class="subtitle">Start your Tamagotchi journey</p>
         
-        <form method="POST" action="{{ url_for('register') }}" class="auth-form">
+        <form method="POST" action="{{ url_for('auth.register') }}" class="auth-form">
             <div class="form-group">
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email" required autofocus>
@@ -38,7 +38,7 @@
         </form>
         
         <p class="auth-footer">
-            Already have an account? <a href="{{ url_for('login') }}">Login here</a>
+            Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a>
         </p>
     </div>
 </div>

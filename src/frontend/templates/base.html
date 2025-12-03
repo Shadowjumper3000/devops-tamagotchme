@@ -11,13 +11,13 @@
     {% if session.get('user_id') %}
     <nav class="navbar">
         <div class="nav-container">
-            <a href="{{ url_for('home') }}" class="nav-logo">🐾 TamagotchMe</a>
+            <a href="{{ url_for('pages.home') }}" class="nav-logo">🐾 TamagotchMe</a>
             <ul class="nav-menu">
-                <li><a href="{{ url_for('home') }}" class="nav-link">Home</a></li>
-                <li><a href="{{ url_for('water_page') }}" class="nav-link">💧 Water</a></li>
-                <li><a href="{{ url_for('food_page') }}" class="nav-link">🍎 Food</a></li>
-                <li><a href="{{ url_for('gym_page') }}" class="nav-link">💪 Gym</a></li>
-                <li><a href="{{ url_for('logout') }}" class="nav-link">Logout</a></li>
+                <li><a href="{{ url_for('pages.home') }}" class="nav-link">Home</a></li>
+                <li><a href="{{ url_for('pages.water_page') }}" class="nav-link">💧 Water</a></li>
+                <li><a href="{{ url_for('pages.food_page') }}" class="nav-link">🍎 Food</a></li>
+                <li><a href="{{ url_for('pages.gym_page') }}" class="nav-link">💪 Gym</a></li>
+                <li><a href="{{ url_for('auth.logout') }}" class="nav-link">Logout</a></li>
             </ul>
         </div>
     </nav>
