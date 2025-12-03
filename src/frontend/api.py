@@ -1,4 +1,4 @@
-"""REST API endpoints for the Tamagotchi Tracker."""
+"""REST API endpoints for the TamagotchMe Tracker."""
 
 import logging
 from flask import Blueprint, request, jsonify, session
@@ -138,9 +138,9 @@ def create_api_blueprint(coordinator):
             'message': 'Workout deleted successfully'
         }), 200
     
-    @api.route('/tamagotchi/health', methods=['GET', 'POST'])
-    def tamagotchi_health():
-        """Get or set Tamagotchi health status."""
+    @api.route('/TamagotchMe/health', methods=['GET', 'POST'])
+    def TamagotchMe_health():
+        """Get or set TamagotchMe health status."""
         user_id = require_auth()
         if not user_id:
             return jsonify({'error': 'Unauthorized'}), 401

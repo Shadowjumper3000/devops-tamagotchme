@@ -43,13 +43,13 @@ async function tryLoadImage(basePath, healthLevel) {
     return null;
 }
 
-// Update Tamagotchi sprite based on health
-async function updateTamagotchiSprite() {
-    const sprite = document.getElementById('tamagotchi-sprite');
+// Update TamagotchMe sprite based on health
+async function updateTamagotchMeSprite() {
+    const sprite = document.getElementById('TamagotchMe-sprite');
     if (!sprite) return;
     
     const health = parseInt(sprite.dataset.health);
-    const image = document.getElementById('tamagotchi-image');
+    const image = document.getElementById('TamagotchMe-image');
     const loading = document.getElementById('image-loading');
     
     if (!image) return;
@@ -167,7 +167,7 @@ function quickLog(type) {
         const data = Object.fromEntries(formData);
         
         // Special handling for health endpoint
-        const endpoint = type === 'health' ? '/api/tamagotchi/health' : `/api/${type}`;
+        const endpoint = type === 'health' ? '/api/TamagotchMe/health' : `/api/${type}`;
         
         const result = await apiCall(endpoint, 'POST', data);
         
@@ -178,14 +178,14 @@ function quickLog(type) {
                 showToast('Health updated successfully!', 'success');
                 modal.style.display = 'none';
                 // Update the UI immediately
-                const sprite = document.getElementById('tamagotchi-sprite');
+                const sprite = document.getElementById('TamagotchMe-sprite');
                 if (sprite) {
                     sprite.dataset.health = data.health;
                     const healthFill = document.querySelector('.health-fill');
                     const healthText = document.querySelector('.health-text');
                     if (healthFill) healthFill.style.width = `${data.health}%`;
                     if (healthText) healthText.textContent = `${data.health}% Health`;
-                    updateTamagotchiSprite();
+                    updateTamagotchMeSprite();
                 }
             } else {
                 showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} logged successfully!`, 'success');
@@ -198,8 +198,8 @@ function quickLog(type) {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    updateTamagotchiSprite();
+    updateTamagotchMeSprite();
     
     // Update sprite every 30 seconds
-    setInterval(updateTamagotchiSprite, 30000);
+    setInterval(updateTamagotchMeSprite, 30000);
 });

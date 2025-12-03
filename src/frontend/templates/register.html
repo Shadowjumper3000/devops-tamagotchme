@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Register - Tamagotchi Tracker{% endblock %}
+{% block title %}Register - TamagotchMe Tracker{% endblock %}
 
 {% block content %}
 <div class="auth-container">
     <div class="auth-box">
         <h1>🎉 Create Account</h1>
-        <p class="subtitle">Start your Tamagotchi journey</p>
+        <p class="subtitle">Start your TamagotchMe journey</p>
         
         <form method="POST" action="{{ url_for('register') }}" class="auth-form">
             <div class="form-group">
@@ -21,7 +21,7 @@
             
             <div class="form-group">
                 <label for="pet_name">Pet Name</label>
-                <input type="text" id="pet_name" name="pet_name" required placeholder="Name your Tamagotchi">
+                <input type="text" id="pet_name" name="pet_name" required placeholder="Name your TamagotchMe">
             </div>
             
             <div class="form-group">

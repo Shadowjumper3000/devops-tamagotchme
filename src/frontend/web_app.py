@@ -21,7 +21,7 @@ def login_required(f):
 
 
 class WebApp:
-    """Flask web application for Tamagotchi Tracker."""
+    """Flask web application for TamagotchMe Tracker."""
 
     def __init__(self, config, coordinator):
         """Initialize the web application."""
@@ -93,9 +93,9 @@ class WebApp:
         @self.app.route('/home')
         @login_required
         def home():
-            """Home page with Tamagotchi."""
+            """Home page with TamagotchMe."""
             # TODO: Get actual data from services
-            tamagotchi = {
+            TamagotchMe = {
                 'name': 'TamagotchMe',
                 'health': 85
             }
@@ -106,7 +106,7 @@ class WebApp:
             }
             return render_template('home.html', 
                                  username=session.get('username'),
-                                 tamagotchi=tamagotchi,
+                                 TamagotchMe=TamagotchMe,
                                  stats=stats)
         
         @self.app.route('/water')

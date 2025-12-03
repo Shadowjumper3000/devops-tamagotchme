@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Home - Tamagotchi Tracker{% endblock %}
+{% block title %}Home - TamagotchMe Tracker{% endblock %}
 
 {% block content %}
 <div class="home-container">
@@ -10,16 +10,16 @@
         <div class="tamagotchi-display">
             <div id="tamagotchi-sprite" class="tamagotchi-sprite" data-health="{{ tamagotchi.health }}">
                 <div class="sprite-container">
-                    <img id="tamagotchi-image" class="tamagotchi-image" src="" alt="Tamagotchi" onerror="this.style.display='none';">
+                    <img id="tamagotchi-image" class="tamagotchi-image" src="" alt="TamagotchMe" onerror="this.style.display='none';">
                     <div id="image-loading" class="image-loading">Loading...</div>
                 </div>
             </div>
-            <h2 class="tamagotchi-name">{{ pet_name or tamagotchi.name or 'Your Tamagotchi' }}</h2>
+            <h2 class="tamagotchi-name">{{ pet_name or tamagotchi.name or 'Your TamagotchMe' }}</h2>
             <div class="health-bar-container">
                 <div class="health-bar">
-                    <div class="health-fill" style="width: {{ tamagotchi.health }}%"></div>
+                    <div class="health-fill" style="width: {{ TamagotchMe.health }}%"></div>
                 </div>
-                <span class="health-text">{{ tamagotchi.health }}% Health</span>
+                <span class="health-text">{{ TamagotchMe.health }}% Health</span>
             </div>
         </div>
         
