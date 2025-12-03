@@ -1,10 +1,9 @@
 """Gym tracker models."""
 
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Float, DateTime, Enum
+from sqlalchemy import Column, Integer, String, Float, DateTime, Enum, ForeignKey
 from sqlalchemy.orm import relationship
 import enum
-import json
 
 from ...core.database import Base
 
@@ -24,17 +23,20 @@ class WorkoutEntry(Base):
     __tablename__ = "workout_entries"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)  # e.g., "Morning Run", "Bench Press"
+    name = Column(String, nullable=False)
     workout_type = Column(Enum(WorkoutType), nullable=False)
     duration_minutes = Column(Integer, nullable=False)
     calories_burned = Column(Float, nullable=True)
-    distance_km = Column(Float, nullable=True)  # For cardio
+    distance_km = Column(Float, nullable=True)
     notes = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationship to strength exercises
     strength_exercises = relationship("StrengthExercise", back_populates="workout", cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"<WorkoutEntry(id={self.id}, name={self.name}, type={self.workout_type})>"
 
 
 class StrengthExercise(Base):
@@ -43,58 +45,21 @@ class StrengthExercise(Base):
     __tablename__ = "strength_exercises"
 
     id = Column(Integer, primary_key=True, index=True)
-    workout_id = Column(Integer, nullable=False)
-    exercise_name = Column(String, nullable=False)  # e.g., "Bench Press", "Squat"
+    workout_id = Column(Integer, ForeignKey("workout_entries.id"), nullable=False)
+    exercise_name = Column(String, nullable=False)
     sets = Column(Integer, nullable=False)
     reps = Column(Integer, nullable=False)
     weight_kg = Column(Float, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Relationships
-    user = relationship("User", back_populates="workout_entries")
-
-    # Relationship
+    # Relationship back to workout
     workout = relationship("WorkoutEntry", back_populates="strength_exercises")
-    def __repr__(self):
-        return f"<WorkoutEntry(id={self.id}, user_id={self.user_id}, type={self.workout_type})>"
 
     @property
     def volume(self) -> float:
         """Calculate total volume (sets × reps × weight)."""
         return self.sets * self.reps * self.weight_kg
-    def get_exercises_list(self):
-        """Parse exercises JSON string to list."""
-        if self.exercises:
-            try:
-                return json.loads(self.exercises)
-            except json.JSONDecodeError:
-                return []
-        return []
 
-    def set_exercises_list(self, exercises_list):
-        """Convert exercises list to JSON string."""
-        if exercises_list:
-            self.exercises = json.dumps(exercises_list)
-        else:
-            self.exercises = None
-
-    def to_dict(self):
-        """Convert workout entry to dictionary."""
-        result = {
-            "id": self.id,
-            "user_id": self.user_id,
-            "workout_type": self.workout_type,
-            "timestamp": self.timestamp.isoformat() if self.timestamp else None,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "notes": self.notes,
-            "intensity": self.intensity,
-        }
-
-        if self.workout_type == "HIIT":
-            result["exercises"] = self.get_exercises_list()
-        elif self.workout_type == "Cardio":
-            result["exercise_name"] = self.exercise_name
-            result["duration_minutes"] = self.duration_minutes
-
-        return result
+    def __repr__(self):
+        return f"<StrengthExercise(id={self.id}, exercise={self.exercise_name}, volume={self.volume})>"
