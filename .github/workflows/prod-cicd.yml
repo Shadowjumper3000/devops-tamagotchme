@@ -11,9 +11,9 @@ on:
         type: string
 
 env:
-  IMAGE_NAME: tamagotchmi
-  AZURE_CONTAINER_APP_NAME: tamagotchmi-app
-  AZURE_CONTAINER_ENV_NAME: tamagotchmi-env
+  IMAGE_NAME: tamagotchme
+  AZURE_CONTAINER_APP_NAME: tamagotchme-app
+  AZURE_CONTAINER_ENV_NAME: tamagotchme-env
 
 jobs:
   build-and-test:
@@ -92,13 +92,19 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+    - name: Extract ACR name from login server
+      id: acr
+      run: |
+        ACR_NAME=$(echo "${{ secrets.ACR_LOGIN_SERVER }}" | cut -d'.' -f1)
+        echo "name=$ACR_NAME" >> $GITHUB_OUTPUT
+
     - name: Deploy to Azure Container Apps
       id: deploy
       uses: azure/container-apps-deploy-action@v1
       with:
         resourceGroup: ${{ secrets.AZURE_RESOURCE_GROUP }}
         containerAppName: ${{ secrets.AZURE_CONTAINER_APP_NAME }}
-        acrName: ${{ secrets.ACR_LOGIN_SERVER }}
+        acrName: ${{ steps.acr.outputs.name }}
         imageToDeploy: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:prod-${{ github.sha }}
         environmentVariables: |
           HOST=0.0.0.0

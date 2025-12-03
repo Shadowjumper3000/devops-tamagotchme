@@ -7,7 +7,7 @@ on:
     branches: [ dev ]
 
 env:
-  IMAGE_NAME: tamagotchmi
+  IMAGE_NAME: tamagotchme
 
 jobs:
   build-and-test:
