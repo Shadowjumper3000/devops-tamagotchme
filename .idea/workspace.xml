@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="f0f1f18c-2f55-4e88-b1db-d46b7ce3cc30" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/example_usage.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/core/dashboard_service.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/core/health_calculator.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/modules/auth/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/modules/auth/models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/modules/auth/repository.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/modules/auth/service.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/modules/auth/utils.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/modules/food_tracker/models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/modules/gym_tracker/models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/modules/water_tracker/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/coordinator.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/database.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/modules/food_tracker/service.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/modules/food_tracker/service.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/modules/gym_tracker/service.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/modules/gym_tracker/service.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/modules/water_tracker/service.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/modules/water_tracker/service.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "Omar-HA-Issa"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/Shadowjumper3000/devops-tamagotchme.git",
+    "accountId": "33b21017-3a16-42fc-b3af-5b93e715ba2a"
+  }
+}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 3
+}</component>
+  <component name="ProjectId" id="36Evaxc6MzHf6FIhj2E2Y4GKXrQ" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "business__logic",
+    "ignore.virus.scanning.warn.message": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\User\GitHub\devops-tamagotchme" />
+      <recent name="C:\Users\User\GitHub\devops-tamagotchme\src\shared" />
+      <recent name="C:\Users\User\GitHub\devops-tamagotchme\src\modules\gym_tracker" />
+      <recent name="C:\Users\User\GitHub\devops-tamagotchme\src\modules\food_tracker" />
+      <recent name="C:\Users\User\GitHub\devops-tamagotchme\src\modules\water_tracker" />
+    </key>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-PY-242.23726.102" />
+        <option value="bundled-python-sdk-5e1850174b45-399fe30bd8c1-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-242.23726.102" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f0f1f18c-2f55-4e88-b1db-d46b7ce3cc30" name="Changes" comment="" />
+      <created>1764584615114</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1764584615114</updated>
+      <workItem from="1764584617071" duration="8000" />
+      <workItem from="1764585000317" duration="2695000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
