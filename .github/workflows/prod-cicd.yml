@@ -98,6 +98,20 @@ jobs:
         ACR_NAME=$(echo "${{ secrets.ACR_LOGIN_SERVER }}" | cut -d'.' -f1)
         echo "name=$ACR_NAME" >> $GITHUB_OUTPUT
 
+    - name: Check if Container App exists and configure registry
+      run: |
+        if az containerapp show --name ${{ secrets.AZURE_CONTAINER_APP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} &> /dev/null; then
+          echo "Container App exists, setting registry credentials..."
+          az containerapp registry set \
+            --name ${{ secrets.AZURE_CONTAINER_APP_NAME }} \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --server ${{ secrets.ACR_LOGIN_SERVER }} \
+            --username ${{ secrets.ACR_USERNAME }} \
+            --password ${{ secrets.ACR_PASSWORD }}
+        else
+          echo "Container App doesn't exist yet, will be created with registry credentials"
+        fi
+
     - name: Deploy to Azure Container Apps
       id: deploy
       uses: azure/container-apps-deploy-action@v1
@@ -105,7 +119,12 @@ jobs:
         resourceGroup: ${{ secrets.AZURE_RESOURCE_GROUP }}
         containerAppName: ${{ secrets.AZURE_CONTAINER_APP_NAME }}
         acrName: ${{ steps.acr.outputs.name }}
+        acrUsername: ${{ secrets.ACR_USERNAME }}
+        acrPassword: ${{ secrets.ACR_PASSWORD }}
         imageToDeploy: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:prod-${{ github.sha }}
+        location: westeurope
+        targetPort: 8080
+        ingress: external
         environmentVariables: |
           HOST=0.0.0.0
           PORT=8080
