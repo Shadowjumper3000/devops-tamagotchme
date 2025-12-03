@@ -23,6 +23,7 @@ jobs:
     outputs:
       image_tag: ${{ steps.meta.outputs.tags }}
       image_digest: ${{ steps.build.outputs.digest }}
+      commit_sha: ${{ github.sha }}
     
     steps:
     - name: Checkout code
@@ -97,14 +98,6 @@ jobs:
       run: |
         ACR_NAME=$(echo "${{ secrets.ACR_LOGIN_SERVER }}" | cut -d'.' -f1)
         echo "name=$ACR_NAME" >> $GITHUB_OUTPUT
-    
-    - name: Extract image tag from build output
-      id: image
-      run: |
-        # The metadata action outputs tags as a multi-line string, get the first one
-        FULL_IMAGE=$(echo "${{ needs.build-and-test.outputs.image_tag }}" | head -n1 | tr -d '\n')
-        echo "Image to deploy: $FULL_IMAGE"
-        echo "full_image=$FULL_IMAGE" >> $GITHUB_OUTPUT
 
     - name: Clean up failed Container App if exists
       run: |
@@ -127,7 +120,7 @@ jobs:
         acrName: ${{ steps.acr.outputs.name }}
         acrUsername: ${{ secrets.ACR_USERNAME }}
         acrPassword: ${{ secrets.ACR_PASSWORD }}
-        imageToDeploy: ${{ steps.image.outputs.full_image }}
+        imageToDeploy: ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:prod-${{ needs.build-and-test.outputs.commit_sha }}
         location: westeurope
         targetPort: 8080
         ingress: external
@@ -157,7 +150,7 @@ jobs:
         echo "- **Container App:** ${{ secrets.AZURE_CONTAINER_APP_NAME }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Resource Group:** ${{ secrets.AZURE_RESOURCE_GROUP }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Revision:** ${{ steps.revision.outputs.revision_name }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Image:** ${{ steps.image.outputs.full_image }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Image:** ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:prod-${{ needs.build-and-test.outputs.commit_sha }}" >> $GITHUB_STEP_SUMMARY
 
   rollback:
     runs-on: ubuntu-latest
