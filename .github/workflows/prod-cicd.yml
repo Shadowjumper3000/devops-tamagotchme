@@ -98,18 +98,16 @@ jobs:
         ACR_NAME=$(echo "${{ secrets.ACR_LOGIN_SERVER }}" | cut -d'.' -f1)
         echo "name=$ACR_NAME" >> $GITHUB_OUTPUT
 
-    - name: Check if Container App exists and configure registry
+    - name: Clean up failed Container App if exists
       run: |
-        if az containerapp show --name ${{ secrets.AZURE_CONTAINER_APP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} &> /dev/null; then
-          echo "Container App exists, setting registry credentials..."
-          az containerapp registry set \
+        if az containerapp show --name ${{ secrets.AZURE_CONTAINER_APP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --query "properties.provisioningState" -o tsv 2>/dev/null | grep -q "Failed"; then
+          echo "Container App in failed state, deleting..."
+          az containerapp delete \
             --name ${{ secrets.AZURE_CONTAINER_APP_NAME }} \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --server ${{ secrets.ACR_LOGIN_SERVER }} \
-            --username ${{ secrets.ACR_USERNAME }} \
-            --password ${{ secrets.ACR_PASSWORD }}
-        else
-          echo "Container App doesn't exist yet, will be created with registry credentials"
+            --yes
+          echo "Waiting for deletion to complete..."
+          sleep 30
         fi
 
     - name: Deploy to Azure Container Apps
