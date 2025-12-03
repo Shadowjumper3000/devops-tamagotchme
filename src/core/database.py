@@ -1,4 +1,4 @@
-"""Database manager for the Life Planner application."""
+"""Enhanced Database manager with all models imported."""
 
 import logging
 from pathlib import Path
@@ -46,11 +46,16 @@ class DatabaseManager:
             autocommit=False, autoflush=False, bind=self.engine
         )
 
-        # Import all models to ensure they're registered
-        # TODO: Import actual models when implemented
-        # from ..modules.food_tracker.models import FoodEntry
-        # from ..modules.water_tracker.models import WaterEntry
-        # from ..modules.gym_tracker.models import WorkoutEntry
+        # Import all models to ensure they're registered with Base
+        try:
+            from ..modules.auth.models import User
+            from ..modules.food_tracker.models import FoodEntry
+            from ..modules.water_tracker.models import WaterEntry
+            from ..modules.gym_tracker.models import WorkoutEntry
+            
+            logger.info("All models imported successfully")
+        except ImportError as e:
+            logger.warning(f"Some models could not be imported: {e}")
 
         # Create all tables
         Base.metadata.create_all(bind=self.engine)
