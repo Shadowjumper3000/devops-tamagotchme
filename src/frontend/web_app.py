@@ -2,6 +2,7 @@
 
 import logging
 import os
+from datetime import datetime
 from flask import Flask, jsonify
 from .routes import create_auth_routes, create_page_routes
 from .api import create_api_blueprint
@@ -29,9 +30,41 @@ class WebApp:
             config, "secret_key", "dev-secret-key-change-in-production"
         )
 
+        self._register_template_filters()
         self._register_blueprints()
         self._register_health_endpoint()
         logger.info("Web application initialized")
+
+    def _register_template_filters(self):
+        """Register custom Jinja2 filters."""
+
+        @self.app.template_filter("format_time")
+        def format_time(iso_string, fmt="%I:%M %p"):
+            """Format ISO timestamp string to readable time."""
+            if not iso_string:
+                return "-"
+            try:
+                if isinstance(iso_string, str):
+                    dt = datetime.fromisoformat(iso_string)
+                else:
+                    dt = iso_string
+                return dt.strftime(fmt)
+            except Exception:
+                return iso_string
+
+        @self.app.template_filter("format_datetime")
+        def format_datetime(iso_string, fmt="%b %d, %I:%M %p"):
+            """Format ISO timestamp string to readable datetime."""
+            if not iso_string:
+                return "-"
+            try:
+                if isinstance(iso_string, str):
+                    dt = datetime.fromisoformat(iso_string)
+                else:
+                    dt = iso_string
+                return dt.strftime(fmt)
+            except Exception:
+                return iso_string
 
     def _register_health_endpoint(self):
         """Register health check endpoint."""
