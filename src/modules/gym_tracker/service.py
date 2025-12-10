@@ -1,251 +1,209 @@
-"""Gym tracker service implementation."""
+# python
+"""Gym tracker service."""
 
 import logging
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List
-from sqlalchemy.orm import Session
-from sqlalchemy import func
+
 from ...shared.base_service import BaseTrackerService
-from .models import WorkoutEntry
-from ...shared.database_interface import BaseRepository
+from .repository import GymRepository
+from .models import WorkoutType
 
 logger = logging.getLogger(__name__)
 
 
 class GymTrackerService(BaseTrackerService):
-    """Service for gym workout tracking."""
+    """Service for managing gym tracking functionality."""
 
-    def __init__(self, db_session: Session):
-        """Initialize gym tracker service."""
+    def __init__(self, db_session):
+        """Initialize service with database session."""
         super().__init__(db_session)
-        self.repository = BaseRepository(db_session, WorkoutEntry)
+        self.repository = GymRepository(db_session)
 
-    def log_hiit_workout(
+    def log_workout(
         self,
-        user_id: int,
-        exercises: List[Dict[str, Any]],
-        timestamp: Optional[datetime] = None,
+        name: str,
+        workout_type: str,
+        duration_minutes: int,
+        calories_burned: Optional[float] = None,
+        distance_km: Optional[float] = None,
         notes: Optional[str] = None,
-        intensity: Optional[str] = None
+        strength_exercises: Optional[List[Dict[str, Any]]] = None
     ) -> Dict[str, Any]:
-        """
-        Log a HIIT workout.
-        
-        Args:
-            user_id: User's ID
-            exercises: List of exercises with format [{"exercise": "Push-ups", "reps": 20, "weight": 0}, ...]
-            timestamp: When the workout was performed (defaults to now)
-            notes: Optional workout notes
-            intensity: Optional intensity level (low, medium, high)
-            
-        Returns:
-            Created workout entry
-        """
+        """Log a new workout and return full formatted workout."""
         try:
-            if timestamp is None:
-                timestamp = self._get_current_date()
-            
-            entry = WorkoutEntry(
-                user_id=user_id,
-                workout_type="HIIT",
-                timestamp=timestamp,
-                notes=notes,
-                intensity=intensity
-            )
-            entry.set_exercises_list(exercises)
-            
-            self.db_session.add(entry)
-            self.db_session.commit()
-            self.db_session.refresh(entry)
-            
-            logger.info(f"HIIT workout logged for user {user_id}")
-            return entry.to_dict()
-            
-        except Exception as e:
-            self._handle_error("log_hiit_workout", e)
+            workout_type_enum = WorkoutType(workout_type)
 
-    def log_cardio_workout(
-        self,
-        user_id: int,
-        exercise_name: str,
-        duration_minutes: float,
-        timestamp: Optional[datetime] = None,
-        notes: Optional[str] = None,
-        intensity: Optional[str] = None
-    ) -> Dict[str, Any]:
-        """
-        Log a Cardio workout.
-        
-        Args:
-            user_id: User's ID
-            exercise_name: Name of cardio exercise (running, cycling, etc.)
-            duration_minutes: Duration in minutes
-            timestamp: When the workout was performed (defaults to now)
-            notes: Optional workout notes
-            intensity: Optional intensity level (low, medium, high)
-            
-        Returns:
-            Created workout entry
-        """
-        try:
-            if timestamp is None:
-                timestamp = self._get_current_date()
-            
-            entry = self.repository.create(
-                user_id=user_id,
-                workout_type="Cardio",
-                exercise_name=exercise_name,
-                duration_minutes=duration_minutes,
-                timestamp=timestamp,
-                notes=notes,
-                intensity=intensity
-            )
-            
-            logger.info(f"Cardio workout logged for user {user_id}: {exercise_name} for {duration_minutes} min")
-            return entry.to_dict() if entry else {}
-            
-        except Exception as e:
-            self._handle_error("log_cardio_workout", e)
-
-    def get_daily_summary(self, user_id: int, date: Optional[datetime] = None) -> Dict[str, Any]:
-        """
-        Get daily workout summary.
-        
-        Args:
-            user_id: User's ID
-            date: Date to get summary for (defaults to today)
-            
-        Returns:
-            Dictionary with daily workout summary
-        """
-        try:
-            if date is None:
-                date = self._get_current_date()
-            
-            # Get start and end of day
-            start_of_day = date.replace(hour=0, minute=0, second=0, microsecond=0)
-            end_of_day = start_of_day + timedelta(days=1)
-            
-            # Query workouts for the day
-            workouts = self.db_session.query(WorkoutEntry).filter(
-                WorkoutEntry.user_id == user_id,
-                WorkoutEntry.timestamp >= start_of_day,
-                WorkoutEntry.timestamp < end_of_day
-            ).all()
-            
-            workout_count = len(workouts)
-            hiit_count = sum(1 for w in workouts if w.workout_type == "HIIT")
-            cardio_count = sum(1 for w in workouts if w.workout_type == "Cardio")
-            
-            # Calculate total cardio duration
-            total_cardio_minutes = sum(
-                w.duration_minutes for w in workouts 
-                if w.workout_type == "Cardio" and w.duration_minutes
-            ) or 0.0
-            
-            return {
-                "date": self._format_date(date),
-                "workout_count": workout_count,
-                "hiit_count": hiit_count,
-                "cardio_count": cardio_count,
-                "total_cardio_minutes": float(total_cardio_minutes),
-                "workouts": [w.to_dict() for w in workouts]
+            workout_data = {
+                'name': name,
+                'workout_type': workout_type_enum,
+                'duration_minutes': duration_minutes,
+                'calories_burned': calories_burned,
+                'distance_km': distance_km,
+                'notes': notes
             }
-            
+
+            workout = self.repository.create_workout_with_exercises(
+                workout_data,
+                strength_exercises
+            )
+
+            return self._format_workout(workout)
+
+        except Exception as e:
+            self._handle_error("log_workout", e)
+
+    def get_workout(self, workout_id: int) -> Optional[Dict[str, Any]]:
+        """Get a specific workout by ID and return contract-compliant shape:
+           { "workout": { "type", "duration_minutes", "calories_burned" } }
+        """
+        try:
+            workout = self.repository.get_by_id(workout_id)
+            if not workout:
+                return None
+            return {'workout': self._to_contract_workout(workout)}
+        except Exception as e:
+            self._handle_error("get_workout", e)
+
+    def get_daily_summary(self, date: Optional[datetime] = None) -> Dict[str, Any]:
+        """Return contract-compliant daily summary:
+           { "workouts": [ {"type","duration_minutes"}, ... ] }
+        """
+        try:
+            target_date = date or self._get_current_date()
+            workouts = self.repository.get_daily_workouts(target_date)
+
+            return {
+                'workouts': [
+                    {
+                        'type': w.workout_type.value,
+                        'duration_minutes': w.duration_minutes
+                    }
+                    for w in workouts
+                ]
+            }
+
         except Exception as e:
             self._handle_error("get_daily_summary", e)
 
-    def get_weekly_summary(self, user_id: int, start_date: Optional[datetime] = None) -> Dict[str, Any]:
-        """
-        Get weekly workout summary.
-        
-        Args:
-            user_id: User's ID
-            start_date: Start of week (defaults to 7 days ago)
-            
-        Returns:
-            Dictionary with weekly workout summary
+    def get_weekly_summary(
+        self,
+        start_date: Optional[datetime] = None
+    ) -> Dict[str, Any]:
+        """Return contract-compliant weekly summary:
+           { "weekly_workouts": [ {"type","total_duration_minutes"}, ... ] }
         """
         try:
-            if start_date is None:
-                start_date = self._get_current_date() - timedelta(days=7)
-            
-            end_date = start_date + timedelta(days=7)
-            
-            # Query workouts for the week
-            workouts = self.db_session.query(WorkoutEntry).filter(
-                WorkoutEntry.user_id == user_id,
-                WorkoutEntry.timestamp >= start_date,
-                WorkoutEntry.timestamp < end_date
-            ).all()
-            
-            total_workouts = len(workouts)
-            hiit_count = sum(1 for w in workouts if w.workout_type == "HIIT")
-            cardio_count = sum(1 for w in workouts if w.workout_type == "Cardio")
-            
-            # Calculate total cardio duration
-            total_cardio_minutes = sum(
-                w.duration_minutes for w in workouts 
-                if w.workout_type == "Cardio" and w.duration_minutes
-            ) or 0.0
-            
-            # Days with workouts
-            unique_dates = len(set(w.timestamp.date() for w in workouts))
-            
+            target_start = start_date or (self._get_current_date() - timedelta(days=7))
+            stats = self.repository.get_weekly_stats(target_start)
+
             return {
-                "start_date": self._format_date(start_date),
-                "end_date": self._format_date(end_date),
-                "total_workouts": total_workouts,
-                "hiit_count": hiit_count,
-                "cardio_count": cardio_count,
-                "total_cardio_minutes": float(total_cardio_minutes),
-                "active_days": unique_dates
+                'weekly_workouts': [
+                    {
+                        'type': workout_type,
+                        'total_duration_minutes': data['total_duration_minutes']
+                    }
+                    for workout_type, data in stats.items()
+                ]
             }
-            
+
         except Exception as e:
             self._handle_error("get_weekly_summary", e)
 
     def get_status(self) -> Dict[str, Any]:
-        """Get gym tracker service status."""
+        """Get service status (keeps full workout formatting for last_workout)."""
         try:
-            total_entries = self.repository.count()
+            total_workouts = self.repository.count()
+            recent = self.repository.get_recent(1)
+
             return {
-                "service": self.service_name,
-                "status": "operational",
-                "total_entries": total_entries
-            }
-        except Exception as e:
-            return {
-                "service": self.service_name,
-                "status": "error",
-                "error": str(e)
+                'total_workouts': total_workouts,
+                'last_workout': self._format_workout(recent[0]) if recent else None,
+                'service_status': 'active'
             }
 
-    def get_entries_by_date_range(
+        except Exception as e:
+            logger.error("Error getting status: %s", e)
+            return {'service_status': 'error', 'error': str(e)}
+
+    def query_workouts(
         self,
-        user_id: int,
-        start_date: datetime,
-        end_date: datetime
+        workout_type: Optional[str] = None,
+        min_duration: Optional[int] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None
     ) -> List[Dict[str, Any]]:
-        """
-        Get workout entries within a date range.
-        
-        Args:
-            user_id: User's ID
-            start_date: Start date
-            end_date: End date
-            
-        Returns:
-            List of workout entries
+        """Query workouts with filters and return list of full-formatted workouts."""
+        try:
+            if workout_type:
+                workouts = self.repository.get_workouts_by_type(
+                    WorkoutType(workout_type),
+                    start_date,
+                    end_date
+                )
+            else:
+                workouts = self.repository.filter_by_date_range(start_date, end_date)
+
+            if min_duration is not None:
+                workouts = [w for w in workouts if w.duration_minutes > min_duration]
+
+            return [self._format_workout(w) for w in workouts]
+
+        except Exception as e:
+            self._handle_error("query_workouts", e)
+
+    def mock_query(self, query_text: str, workout_type: Optional[str] = None, min_duration: Optional[int] = None) -> Dict[str, Any]:
+        """Return the mock-query contract:
+           { "query": "<text>", "results": [ { "type","duration_minutes","calories_burned" }, ... ] }
         """
         try:
-            entries = self.db_session.query(WorkoutEntry).filter(
-                WorkoutEntry.user_id == user_id,
-                WorkoutEntry.timestamp >= start_date,
-                WorkoutEntry.timestamp <= end_date
-            ).order_by(WorkoutEntry.timestamp.desc()).all()
-            
-            return [entry.to_dict() for entry in entries]
-            
+            results = self.query_workouts(workout_type=workout_type, min_duration=min_duration)
+            trimmed = [
+                {
+                    'type': r.get('type'),
+                    'duration_minutes': r.get('duration_minutes'),
+                    'calories_burned': r.get('calories_burned')
+                }
+                for r in results
+            ]
+            return {'query': query_text, 'results': trimmed}
         except Exception as e:
-            self._handle_error("get_entries_by_date_range", e)
+            self._handle_error("mock_query", e)
+
+    def _to_contract_workout(self, workout) -> Dict[str, Any]:
+        """Return the minimal contract fields for an individual workout."""
+        return {
+            'type': workout.workout_type.value,
+            'duration_minutes': workout.duration_minutes,
+            'calories_burned': workout.calories_burned
+        }
+
+    def _format_workout(self, workout) -> Dict[str, Any]:
+        """Format workout for API response (full form)."""
+        if not workout:
+            return {}
+
+        formatted = {
+            'id': workout.id,
+            'name': workout.name,
+            'type': workout.workout_type.value,
+            'duration_minutes': workout.duration_minutes,
+            'calories_burned': workout.calories_burned,
+            'distance_km': workout.distance_km,
+            'notes': workout.notes,
+            'created_at': workout.created_at.isoformat()
+        }
+
+        if getattr(workout, 'strength_exercises', None):
+            formatted['strength_exercises'] = [
+                {
+                    'exercise_name': ex.exercise_name,
+                    'sets': ex.sets,
+                    'reps': ex.reps,
+                    'weight_kg': ex.weight_kg,
+                    'volume': ex.volume
+                }
+                for ex in workout.strength_exercises
+            ]
+
+        return formatted
