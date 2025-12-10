@@ -1,3 +1,4 @@
+# python
 """Gym tracker repository."""
 
 import logging
@@ -26,12 +27,10 @@ class GymRepository(BaseRepository):
     ) -> WorkoutEntry:
         """Create a workout entry with optional strength exercises."""
         try:
-            # Create workout
             workout = WorkoutEntry(**workout_data)
             self.db_session.add(workout)
             self.db_session.flush()  # Get the ID without committing
 
-            # Add strength exercises if provided
             if exercises and workout.workout_type == WorkoutType.STRENGTH:
                 for ex_data in exercises:
                     exercise = StrengthExercise(workout_id=workout.id, **ex_data)
@@ -99,11 +98,12 @@ class GymRepository(BaseRepository):
 
             result = {}
             for stat in stats:
+                # preserve 0 vs None correctly for distance
                 result[stat.workout_type.value] = {
                     'count': stat.count,
                     'total_duration_minutes': int(stat.total_duration or 0),
                     'total_calories': float(stat.total_calories or 0),
-                    'total_distance_km': float(stat.total_distance or 0) if stat.total_distance else None
+                    'total_distance_km': float(stat.total_distance) if stat.total_distance is not None else None
                 }
 
             return result
