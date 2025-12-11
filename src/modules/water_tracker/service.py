@@ -20,7 +20,7 @@ class WaterTrackerService(BaseTrackerService):
         super().__init__(db_session)
         self.repository = BaseRepository(db_session, WaterEntry)
 
-    def log_water(self, user_id: int, amount_ml: float, timestamp: Optional[datetime] = None) -> Dict[str, Any]:
+    def log_water(self, user_id: int, amount_ml: float, timestamp: Optional[datetime] = None, notes: Optional[str] = None) -> Dict[str, Any]:
         """
         Log water intake.
         
@@ -28,6 +28,7 @@ class WaterTrackerService(BaseTrackerService):
             user_id: User's ID
             amount_ml: Amount of water in milliliters
             timestamp: When the water was consumed (defaults to now)
+            notes: Optional notes about the water intake
             
         Returns:
             Created water entry
@@ -39,6 +40,7 @@ class WaterTrackerService(BaseTrackerService):
             entry = self.repository.create(
                 user_id=user_id,
                 amount_ml=amount_ml,
+                notes=notes,
                 timestamp=timestamp
             )
             
@@ -97,31 +99,42 @@ class WaterTrackerService(BaseTrackerService):
         
         Args:
             user_id: User's ID
-            start_date: Start of week (defaults to 7 days ago)
+            start_date: End date of the week (defaults to today, looks back 7 days)
             
         Returns:
             Dictionary with weekly water summary
         """
         try:
             if start_date is None:
-                start_date = self._get_current_date() - timedelta(days=7)
+                start_date = self._get_current_date()
             
-            end_date = start_date + timedelta(days=7)
+            # Calculate the week ending on start_date
+            end_date = start_date
+            week_start = start_date - timedelta(days=6)
             
             # Query total water for the week
             total_ml = self.db_session.query(func.sum(WaterEntry.amount_ml)).filter(
                 WaterEntry.user_id == user_id,
-                WaterEntry.timestamp >= start_date,
-                WaterEntry.timestamp < end_date
+                WaterEntry.timestamp >= week_start,
+                WaterEntry.timestamp <= end_date
             ).scalar() or 0.0
+            
+            # Count entries
+            entry_count = self.db_session.query(func.count(WaterEntry.id)).filter(
+                WaterEntry.user_id == user_id,
+                WaterEntry.timestamp >= week_start,
+                WaterEntry.timestamp <= end_date
+            ).scalar() or 0
             
             # Daily average
             daily_average = float(total_ml) / 7
             
             return {
-                "start_date": self._format_date(start_date),
+                "start_date": self._format_date(week_start),
                 "end_date": self._format_date(end_date),
                 "total_ml": float(total_ml),
+                "entry_count": entry_count,
+                "average_daily_ml": round(daily_average, 2),
                 "daily_average_ml": round(daily_average, 2),
                 "total_liters": round(float(total_ml) / 1000, 2)
             }
@@ -144,6 +157,51 @@ class WaterTrackerService(BaseTrackerService):
                 "status": "error",
                 "error": str(e)
             }
+
+    def update_entry(self, entry_id: int, amount_ml: Optional[float] = None, notes: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Update a water entry.
+        
+        Args:
+            entry_id: Entry ID to update
+            amount_ml: New amount in milliliters (optional)
+            notes: New notes (optional)
+            
+        Returns:
+            Updated water entry
+        """
+        try:
+            update_data = {}
+            if amount_ml is not None:
+                update_data['amount_ml'] = amount_ml
+            if notes is not None:
+                update_data['notes'] = notes
+            
+            entry = self.repository.update(entry_id, **update_data)
+            logger.info(f"Water entry {entry_id} updated")
+            return entry.to_dict() if entry else {}
+            
+        except Exception as e:
+            self._handle_error("update_entry", e)
+
+    def delete_entry(self, entry_id: int) -> bool:
+        """
+        Delete a water entry.
+        
+        Args:
+            entry_id: Entry ID to delete
+            
+        Returns:
+            True if deleted successfully
+        """
+        try:
+            result = self.repository.delete(entry_id)
+            logger.info(f"Water entry {entry_id} deleted")
+            return result
+            
+        except Exception as e:
+            self._handle_error("delete_entry", e)
+            return False
 
     def get_entries_by_date_range(
         self,
