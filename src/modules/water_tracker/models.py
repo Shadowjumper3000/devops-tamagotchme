@@ -1,7 +1,7 @@
 """Water tracker data models."""
 
 from datetime import datetime
-from sqlalchemy import Column, Integer, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, Float, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
 from ...core.database import Base
@@ -17,6 +17,7 @@ class WaterEntry(Base):
     
     # Water tracking data
     amount_ml = Column(Float, nullable=False)  # Amount in milliliters
+    notes = Column(String(500), nullable=True)  # Optional notes about water intake
     
     # Timestamps
     timestamp = Column(DateTime, nullable=False, index=True)  # When the water was consumed
@@ -35,6 +36,7 @@ class WaterEntry(Base):
             "id": self.id,
             "user_id": self.user_id,
             "amount_ml": self.amount_ml,
+            "notes": self.notes,
             "timestamp": self.timestamp.isoformat() if self.timestamp else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
