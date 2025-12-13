@@ -41,47 +41,55 @@
     <div class="charts-row">
         <div class="chart-container">
             <h2>Weekly Activity</h2>
-            <canvas id="activityChart"></canvas>
+            <canvas id="activityChart" style="max-height: 300px;"></canvas>
         </div>
-        
+
         <div class="chart-container">
             <h2>Workout Types</h2>
-            <canvas id="workoutTypesChart"></canvas>
+            <canvas id="workoutTypesChart" style="max-height: 300px;"></canvas>
         </div>
     </div>
-    
+
     <div class="history-section">
         <h2>Recent Workouts</h2>
         <div class="workout-list">
-            {% for workout in workouts %}
-            <div class="workout-card">
-                <div class="workout-header">
-                    <h3>{{ workout.type }}</h3>
-                    <span class="workout-date">{{ workout.timestamp | format_datetime }}</span>
-                </div>
-                <div class="workout-stats">
-                    <div class="workout-stat">
-                        <span class="stat-label">Duration</span>
-                        <span class="stat-value">{{ workout.duration }} min</span>
+            {% if workouts %}
+                {% for workout in workouts %}
+                <div class="workout-card">
+                    <div class="workout-header">
+                        <h3>{{ workout.name }}</h3>
+                        <span class="workout-date">{{ workout.created_at[:10] }}</span>
                     </div>
-                    <div class="workout-stat">
-                        <span class="stat-label">Intensity</span>
-                        <span class="stat-value">{{ workout.intensity }}</span>
+                    <div class="workout-stats">
+                        <div class="workout-stat">
+                            <span class="stat-label">Type</span>
+                            <span class="stat-value">{{ workout.type }}</span>
+                        </div>
+                        <div class="workout-stat">
+                            <span class="stat-label">Duration</span>
+                            <span class="stat-value">{{ workout.duration_minutes }} min</span>
+                        </div>
+                        <div class="workout-stat">
+                            <span class="stat-label">Intensity</span>
+                            <span class="stat-value">{{ workout.intensity or 'N/A' }}</span>
+                        </div>
+                        <div class="workout-stat">
+                            <span class="stat-label">Calories</span>
+                            <span class="stat-value">{{ workout.calories_burned or '-' }}</span>
+                        </div>
                     </div>
-                    <div class="workout-stat">
-                        <span class="stat-label">Calories</span>
-                        <span class="stat-value">{{ workout.calories or '-' }}</span>
+                    {% if workout.notes %}
+                    <p class="workout-notes">{{ workout.notes }}</p>
+                    {% endif %}
+                    <div class="workout-actions">
+                        <button class="btn-icon" onclick="editWorkout({{ workout.id }})">✏️</button>
+                        <button class="btn-icon" onclick="deleteWorkout({{ workout.id }})">🗑️</button>
                     </div>
                 </div>
-                {% if workout.notes %}
-                <p class="workout-notes">{{ workout.notes }}</p>
-                {% endif %}
-                <div class="workout-actions">
-                    <button class="btn-icon" onclick="editWorkout({{ workout.id }})">✏️</button>
-                    <button class="btn-icon" onclick="deleteWorkout({{ workout.id }})">🗑️</button>
-                </div>
-            </div>
-            {% endfor %}
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; color: #666; padding: 2rem;">No workouts logged yet. Start tracking!</p>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -113,7 +121,7 @@
                     <label for="intensity">Intensity</label>
                     <select id="intensity" name="intensity" required>
                         <option value="Low">Low</option>
-                        <option value="Medium">Medium</option>
+                        <option value="Medium" selected>Medium</option>
                         <option value="High">High</option>
                     </select>
                 </div>

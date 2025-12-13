@@ -1,4 +1,3 @@
-# python
 """Gym tracker service."""
 
 import logging
@@ -22,25 +21,31 @@ class GymTrackerService(BaseTrackerService):
 
     def log_workout(
         self,
+        user_id: int,
         name: str,
         workout_type: str,
         duration_minutes: int,
         calories_burned: Optional[float] = None,
         distance_km: Optional[float] = None,
         notes: Optional[str] = None,
+        intensity: Optional[str] = None,
+        timestamp: Optional[datetime] = None,
         strength_exercises: Optional[List[Dict[str, Any]]] = None
     ) -> Dict[str, Any]:
         """Log a new workout and return full formatted workout."""
         try:
-            workout_type_enum = WorkoutType(workout_type)
+            workout_type_enum = WorkoutType(workout_type.lower())
 
             workout_data = {
+                'user_id': user_id,
                 'name': name,
                 'workout_type': workout_type_enum,
                 'duration_minutes': duration_minutes,
                 'calories_burned': calories_burned,
                 'distance_km': distance_km,
-                'notes': notes
+                'notes': notes,
+                'intensity': intensity,
+                'created_at': timestamp or datetime.now()
             }
 
             workout = self.repository.create_workout_with_exercises(
@@ -53,27 +58,70 @@ class GymTrackerService(BaseTrackerService):
         except Exception as e:
             self._handle_error("log_workout", e)
 
-    def get_workout(self, workout_id: int) -> Optional[Dict[str, Any]]:
-        """Get a specific workout by ID and return contract-compliant shape:
-           { "workout": { "type", "duration_minutes", "calories_burned" } }
-        """
+    # Frontend compatibility methods
+    def log_cardio_workout(
+        self,
+        user_id: int,
+        cardio_type: str,
+        duration_minutes: int,
+        distance_km: float = 0,
+        intensity: str = "Medium",
+        calories: int = 0,
+        notes: str = "",
+        timestamp: Optional[datetime] = None
+    ) -> Dict[str, Any]:
+        """Log cardio workout (frontend compatibility)."""
+        return self.log_workout(
+            user_id=user_id,
+            name=cardio_type.capitalize(),
+            workout_type="cardio",
+            duration_minutes=duration_minutes,
+            distance_km=distance_km if distance_km > 0 else None,
+            intensity=intensity,
+            calories_burned=float(calories) if calories > 0 else None,
+            notes=notes,
+            timestamp=timestamp
+        )
+
+    def get_entries_by_date_range(
+        self,
+        user_id: int,
+        start_date: datetime,
+        end_date: datetime
+    ) -> List[Dict[str, Any]]:
+        """Get entries by date range (frontend compatibility)."""
         try:
-            workout = self.repository.get_by_id(workout_id)
+            workouts = self.repository.get_by_user_and_date_range(user_id, start_date, end_date)
+            return [self._format_workout(w) for w in workouts]
+        except Exception as e:
+            self._handle_error("get_entries_by_date_range", e)
+
+    def delete_entry(self, workout_id: int):
+        """Delete entry (frontend compatibility - needs user_id)."""
+        # Note: This is incomplete without user_id, frontend should pass it
+        try:
+            self.repository.delete(workout_id)
+        except Exception as e:
+            self._handle_error("delete_entry", e)
+
+    def get_workout(self, user_id: int, workout_id: int) -> Optional[Dict[str, Any]]:
+        """Get a specific workout by ID (contract-compliant)."""
+        try:
+            workout = self.repository.get_by_user_and_id(user_id, workout_id)
             if not workout:
                 return None
             return {'workout': self._to_contract_workout(workout)}
         except Exception as e:
             self._handle_error("get_workout", e)
 
-    def get_daily_summary(self, date: Optional[datetime] = None) -> Dict[str, Any]:
-        """Return contract-compliant daily summary:
-           { "workouts": [ {"type","duration_minutes"}, ... ] }
-        """
+    def get_daily_summary(self, user_id: int, date: Optional[datetime] = None) -> Dict[str, Any]:
+        """Return contract-compliant daily summary."""
         try:
             target_date = date or self._get_current_date()
-            workouts = self.repository.get_daily_workouts(target_date)
+            workouts = self.repository.get_daily_workouts(user_id, target_date)
 
-            return {
+            # Contract format
+            contract_response = {
                 'workouts': [
                     {
                         'type': w.workout_type.value,
@@ -83,21 +131,30 @@ class GymTrackerService(BaseTrackerService):
                 ]
             }
 
+            # Frontend compatibility - add aggregated stats
+            total_cardio = sum(w.duration_minutes for w in workouts if w.workout_type == WorkoutType.CARDIO)
+            total_calories = sum(w.calories_burned or 0 for w in workouts)
+
+            contract_response['total_cardio_minutes'] = total_cardio
+            contract_response['estimated_calories'] = int(total_calories)
+
+            return contract_response
+
         except Exception as e:
             self._handle_error("get_daily_summary", e)
 
     def get_weekly_summary(
         self,
+        user_id: int,
         start_date: Optional[datetime] = None
     ) -> Dict[str, Any]:
-        """Return contract-compliant weekly summary:
-           { "weekly_workouts": [ {"type","total_duration_minutes"}, ... ] }
-        """
+        """Return contract-compliant weekly summary."""
         try:
             target_start = start_date or (self._get_current_date() - timedelta(days=7))
-            stats = self.repository.get_weekly_stats(target_start)
+            stats = self.repository.get_weekly_stats(user_id, target_start)
 
-            return {
+            # Contract format
+            contract_response = {
                 'weekly_workouts': [
                     {
                         'type': workout_type,
@@ -107,11 +164,18 @@ class GymTrackerService(BaseTrackerService):
                 ]
             }
 
+            # Frontend compatibility
+            cardio_stats = stats.get('cardio', {})
+            contract_response['total_cardio_minutes'] = cardio_stats.get('total_duration_minutes', 0)
+            contract_response['workout_count'] = sum(data['count'] for data in stats.values())
+
+            return contract_response
+
         except Exception as e:
             self._handle_error("get_weekly_summary", e)
 
     def get_status(self) -> Dict[str, Any]:
-        """Get service status (keeps full workout formatting for last_workout)."""
+        """Get service status."""
         try:
             total_workouts = self.repository.count()
             recent = self.repository.get_recent(1)
@@ -128,21 +192,23 @@ class GymTrackerService(BaseTrackerService):
 
     def query_workouts(
         self,
+        user_id: int,
         workout_type: Optional[str] = None,
         min_duration: Optional[int] = None,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None
     ) -> List[Dict[str, Any]]:
-        """Query workouts with filters and return list of full-formatted workouts."""
+        """Query workouts with filters."""
         try:
             if workout_type:
                 workouts = self.repository.get_workouts_by_type(
+                    user_id,
                     WorkoutType(workout_type),
                     start_date,
                     end_date
                 )
             else:
-                workouts = self.repository.filter_by_date_range(start_date, end_date)
+                workouts = self.repository.get_by_user_and_date_range(user_id, start_date, end_date)
 
             if min_duration is not None:
                 workouts = [w for w in workouts if w.duration_minutes > min_duration]
@@ -152,12 +218,10 @@ class GymTrackerService(BaseTrackerService):
         except Exception as e:
             self._handle_error("query_workouts", e)
 
-    def mock_query(self, query_text: str, workout_type: Optional[str] = None, min_duration: Optional[int] = None) -> Dict[str, Any]:
-        """Return the mock-query contract:
-           { "query": "<text>", "results": [ { "type","duration_minutes","calories_burned" }, ... ] }
-        """
+    def mock_query(self, user_id: int, query_text: str, workout_type: Optional[str] = None, min_duration: Optional[int] = None) -> Dict[str, Any]:
+        """Return the mock-query contract."""
         try:
-            results = self.query_workouts(workout_type=workout_type, min_duration=min_duration)
+            results = self.query_workouts(user_id=user_id, workout_type=workout_type, min_duration=min_duration)
             trimmed = [
                 {
                     'type': r.get('type'),
@@ -191,6 +255,7 @@ class GymTrackerService(BaseTrackerService):
             'calories_burned': workout.calories_burned,
             'distance_km': workout.distance_km,
             'notes': workout.notes,
+            'intensity': workout.intensity,
             'created_at': workout.created_at.isoformat()
         }
 
