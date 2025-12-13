@@ -26,13 +26,17 @@ def create_api_blueprint(coordinator):
         if request.method == "POST":
             data = request.get_json()
             amount = data.get("amount")
+            notes = data.get("notes", "")
 
             if not amount:
                 return jsonify({"error": "Amount is required"}), 400
 
             try:
                 entry = water_service.log_water(
-                    user_id=user_id, amount_ml=float(amount), timestamp=datetime.now()
+                    user_id=user_id, 
+                    amount_ml=float(amount), 
+                    notes=notes,
+                    timestamp=datetime.now()
                 )
                 logger.info("Water logged: %sml for user %s", amount, user_id)
 
@@ -101,6 +105,9 @@ def create_api_blueprint(coordinator):
             meal_name = data.get("meal_name")
             calories = data.get("calories")
             meal_type = data.get("meal_type")
+            protein = data.get("protein", 0)
+            carbs = data.get("carbs", 0)
+            fats = data.get("fats", 0)
 
             if not calories:
                 return jsonify({"error": "Calories is required"}), 400
@@ -111,6 +118,9 @@ def create_api_blueprint(coordinator):
                     calories=float(calories),
                     meal_name=meal_name,
                     meal_type=meal_type,
+                    protein=float(protein) if protein else 0,
+                    carbs=float(carbs) if carbs else 0,
+                    fats=float(fats) if fats else 0,
                     timestamp=datetime.now(),
                 )
                 logger.info(
@@ -181,6 +191,9 @@ def create_api_blueprint(coordinator):
             data = request.get_json()
             workout_type = data.get("workout_type", "Cardio")
             duration = data.get("duration")
+            intensity = data.get("intensity", "Medium")
+            calories = data.get("calories", 0)
+            notes = data.get("notes", "")
 
             if not duration:
                 return jsonify({"error": "Duration is required"}), 400
@@ -192,6 +205,9 @@ def create_api_blueprint(coordinator):
                     cardio_type=workout_type.lower(),
                     duration_minutes=int(duration),
                     distance_km=0,
+                    intensity=intensity,
+                    calories=int(calories) if calories else 0,
+                    notes=notes,
                     timestamp=datetime.now(),
                 )
                 logger.info(

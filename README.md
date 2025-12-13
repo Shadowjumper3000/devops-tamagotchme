@@ -3,19 +3,19 @@
 A comprehensive life planning application built as a Python modular monolith, featuring food tracking, water tracking, and gym tracking capabilities.
 
 ## ToDo
-- [] Food Tracking Module
-- [] Water Tracking Module
-- [] Gym Tracking Module
-- [] REST API with JSON responses
+- [ ] Food Tracking Module
+- [ ] Water Tracking Module
+- [ ] Gym Tracking Module
+- [ ] REST API with JSON responses
 - [x] Shared Database Interface
-- [] Modular architecture with dependency injection
-- [] API Documentation
-- [] Unit and Integration Tests
-- [] Dockerization
-- [] CI/CD Pipeline
-- [] Frontend Web Interface
-- [] User Authentication and Authorization
-- [] Data Contracts and Validation
+- [ ] Modular architecture with dependency injection
+- [ ] API Documentation
+- [ ] Unit and Integration Tests
+- [ ] Dockerization
+- [ ] CI/CD Pipeline
+- [ ] Frontend Web Interface
+- [ ] User Authentication and Authorization
+- [ ] Data Contracts and Validation
 
 ## Project Structure
 

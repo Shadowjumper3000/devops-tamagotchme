@@ -112,7 +112,7 @@ function quickLog(type) {
             content = `
                 <div class="form-group">
                     <label for="quickMeal">Meal Name</label>
-                    <input type="text" id="quickMeal" name="meal" required>
+                    <input type="text" id="quickMeal" name="meal_name" required>
                 </div>
                 <div class="form-group">
                     <label for="quickCalories">Calories</label>
@@ -125,7 +125,7 @@ function quickLog(type) {
             content = `
                 <div class="form-group">
                     <label for="quickWorkout">Workout Type</label>
-                    <select id="quickWorkout" name="workout" required>
+                    <select id="quickWorkout" name="workout_type" required>
                         <option value="Cardio">Cardio</option>
                         <option value="Strength">Strength Training</option>
                         <option value="HIIT">HIIT</option>
@@ -135,22 +135,6 @@ function quickLog(type) {
                 <div class="form-group">
                     <label for="quickDuration">Duration (min)</label>
                     <input type="number" id="quickDuration" name="duration" required min="1">
-                </div>
-            `;
-            break;
-        case 'health':
-            modalTitle.textContent = '❤️ Set Health (Dev Mode)';
-            content = `
-                <div class="form-group">
-                    <label for="quickHealth">Health Percentage (0-100)</label>
-                    <input type="number" id="quickHealth" name="health" required min="0" max="100" step="1">
-                </div>
-                <div class="quick-amounts">
-                    <button type="button" class="btn-quick" onclick="document.getElementById('quickHealth').value = 0">0%</button>
-                    <button type="button" class="btn-quick" onclick="document.getElementById('quickHealth').value = 25">25%</button>
-                    <button type="button" class="btn-quick" onclick="document.getElementById('quickHealth').value = 50">50%</button>
-                    <button type="button" class="btn-quick" onclick="document.getElementById('quickHealth').value = 75">75%</button>
-                    <button type="button" class="btn-quick" onclick="document.getElementById('quickHealth').value = 100">100%</button>
                 </div>
             `;
             break;
@@ -166,32 +150,14 @@ function quickLog(type) {
         const formData = new FormData(form);
         const data = Object.fromEntries(formData);
         
-        // Special handling for health endpoint
-        const endpoint = type === 'health' ? '/api/tamagotchi/health' : `/api/${type}`;
-        
-        const result = await apiCall(endpoint, 'POST', data);
+        const result = await apiCall(`/api/${type}`, 'POST', data);
         
         if (result.error) {
             showToast(result.error, 'error');
         } else {
-            if (type === 'health') {
-                showToast('Health updated successfully!', 'success');
-                modal.style.display = 'none';
-                // Update the UI immediately
-                const sprite = document.getElementById('tamagotchi-sprite');
-                if (sprite) {
-                    sprite.dataset.health = data.health;
-                    const healthFill = document.querySelector('.health-fill');
-                    const healthText = document.querySelector('.health-text');
-                    if (healthFill) healthFill.style.width = `${data.health}%`;
-                    if (healthText) healthText.textContent = `${data.health}% Health`;
-                    updateTamagotchiSprite();
-                }
-            } else {
-                showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} logged successfully!`, 'success');
-                modal.style.display = 'none';
-                setTimeout(() => location.reload(), 1000);
-            }
+            showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} logged successfully!`, 'success');
+            modal.style.display = 'none';
+            setTimeout(() => location.reload(), 1000);
         }
     };
 }
