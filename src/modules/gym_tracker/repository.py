@@ -1,4 +1,3 @@
-# python
 """Gym tracker repository."""
 
 import logging
@@ -29,7 +28,7 @@ class GymRepository(BaseRepository):
         try:
             workout = WorkoutEntry(**workout_data)
             self.db_session.add(workout)
-            self.db_session.flush()  # Get the ID without committing
+            self.db_session.flush()
 
             if exercises and workout.workout_type == WorkoutType.STRENGTH:
                 for ex_data in exercises:
@@ -47,15 +46,45 @@ class GymRepository(BaseRepository):
             logger.error("Failed to create workout with exercises: %s", e)
             raise
 
+    def get_by_user_and_id(self, user_id: int, workout_id: int) -> Optional[WorkoutEntry]:
+        """Get workout by user_id and workout_id."""
+        try:
+            return self.db_session.query(WorkoutEntry).filter(
+                WorkoutEntry.user_id == user_id,
+                WorkoutEntry.id == workout_id
+            ).first()
+        except Exception as e:
+            logger.error("Failed to get workout by user and id: %s", e)
+            raise
+
+    def get_by_user_and_date_range(
+            self,
+            user_id: int,
+            start_date: datetime,
+            end_date: datetime
+    ) -> List[WorkoutEntry]:
+        """Get workouts for a user within a date range."""
+        try:
+            return self.db_session.query(WorkoutEntry).filter(
+                WorkoutEntry.user_id == user_id,
+                WorkoutEntry.created_at >= start_date,
+                WorkoutEntry.created_at <= end_date
+            ).order_by(WorkoutEntry.created_at.desc()).all()
+        except Exception as e:
+            logger.error("Failed to get workouts by user and date range: %s", e)
+            raise
+
     def get_workouts_by_type(
             self,
+            user_id: int,
             workout_type: WorkoutType,
             start_date: Optional[datetime] = None,
             end_date: Optional[datetime] = None
     ) -> List[WorkoutEntry]:
-        """Get workouts filtered by type and optional date range."""
+        """Get workouts filtered by user, type and optional date range."""
         try:
             query = self.db_session.query(WorkoutEntry).filter(
+                WorkoutEntry.user_id == user_id,
                 WorkoutEntry.workout_type == workout_type
             )
 
@@ -70,21 +99,21 @@ class GymRepository(BaseRepository):
             logger.error("Failed to get workouts by type: %s", e)
             raise
 
-    def get_daily_workouts(self, date: datetime) -> List[WorkoutEntry]:
+    def get_daily_workouts(self, user_id: int, date: datetime) -> List[WorkoutEntry]:
         """Get all workouts for a specific day."""
         start = datetime(date.year, date.month, date.day, 0, 0, 0)
         end = start + timedelta(days=1)
-        return self.filter_by_date_range(start, end)
+        return self.get_by_user_and_date_range(user_id, start, end)
 
     def get_weekly_stats(
             self,
+            user_id: int,
             start_date: datetime
     ) -> Dict[str, Any]:
         """Get aggregated weekly statistics."""
         try:
             end_date = start_date + timedelta(days=7)
 
-            # Aggregate by workout type
             stats = self.db_session.query(
                 WorkoutEntry.workout_type,
                 func.count(WorkoutEntry.id).label('count'),
@@ -92,13 +121,13 @@ class GymRepository(BaseRepository):
                 func.sum(WorkoutEntry.calories_burned).label('total_calories'),
                 func.sum(WorkoutEntry.distance_km).label('total_distance')
             ).filter(
+                WorkoutEntry.user_id == user_id,
                 WorkoutEntry.created_at >= start_date,
                 WorkoutEntry.created_at < end_date
             ).group_by(WorkoutEntry.workout_type).all()
 
             result = {}
             for stat in stats:
-                # preserve 0 vs None correctly for distance
                 result[stat.workout_type.value] = {
                     'count': stat.count,
                     'total_duration_minutes': int(stat.total_duration or 0),
@@ -120,4 +149,21 @@ class GymRepository(BaseRepository):
             ).all()
         except Exception as e:
             logger.error("Failed to get strength exercises: %s", e)
+            raise
+
+    def delete_by_user_and_id(self, user_id: int, workout_id: int) -> bool:
+        """Delete workout by user_id and workout_id."""
+        try:
+            workout = self.get_by_user_and_id(user_id, workout_id)
+            if not workout:
+                return False
+
+            self.db_session.delete(workout)
+            self.db_session.commit()
+            logger.info("Deleted workout %s for user %s", workout_id, user_id)
+            return True
+
+        except Exception as e:
+            self.db_session.rollback()
+            logger.error("Failed to delete workout: %s", e)
             raise

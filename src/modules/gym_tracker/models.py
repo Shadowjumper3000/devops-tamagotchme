@@ -1,4 +1,3 @@
-# python
 """Gym tracker models."""
 
 from datetime import datetime
@@ -24,20 +23,18 @@ class WorkoutEntry(Base):
     __tablename__ = "workout_entries"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)  # ADD THIS LINE
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     name = Column(String, nullable=False)
     workout_type = Column(Enum(WorkoutType), nullable=False)
     duration_minutes = Column(Integer, nullable=False)
     calories_burned = Column(Float, nullable=True)
     distance_km = Column(Float, nullable=True)
     notes = Column(String, nullable=True)
+    intensity = Column(String, nullable=True)  # Added for frontend compatibility
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
-    # Relationship to strength exercises
     strength_exercises = relationship("StrengthExercise", back_populates="workout", cascade="all, delete-orphan")
-
-    # ADD THIS LINE - Relationship back to user
     user = relationship("User", back_populates="workout_entries")
 
     def __repr__(self):
@@ -58,7 +55,6 @@ class StrengthExercise(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Relationship back to workout
     workout = relationship("WorkoutEntry", back_populates="strength_exercises")
 
     @property
