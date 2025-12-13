@@ -24,6 +24,7 @@ class WorkoutEntry(Base):
     __tablename__ = "workout_entries"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)  # ADD THIS LINE
     name = Column(String, nullable=False)
     workout_type = Column(Enum(WorkoutType), nullable=False)
     duration_minutes = Column(Integer, nullable=False)
@@ -35,6 +36,9 @@ class WorkoutEntry(Base):
 
     # Relationship to strength exercises
     strength_exercises = relationship("StrengthExercise", back_populates="workout", cascade="all, delete-orphan")
+
+    # ADD THIS LINE - Relationship back to user
+    user = relationship("User", back_populates="workout_entries")
 
     def __repr__(self):
         return f"<WorkoutEntry(id={self.id}, name={self.name}, type={self.workout_type})>"
